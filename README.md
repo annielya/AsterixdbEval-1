@@ -1,2 +1,2 @@
 # AsterixdbEval
-Evaluation of asterixdb compared with other databases
+Evaluation of asterixdb compared to other databases
