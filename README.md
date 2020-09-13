@@ -63,7 +63,52 @@ and t.geo_tag_stateID in (37,51,24,11,10,34,42,9,44,48,35,4,40,6,20,32,8,49,
 12,22,28,1,13,45,5,47,21,29,54,17,18,39,19,55,26,27,31,
 56,41,46,16,30,53,38,25,36,50,33,23,2);
 
+## Queries Performance
+
 |Query|AsterixDB-keyword search|Omnisci-like statement|AsterixDB-like statement|
 | --- | --- | --- | --- |
 |Query by keyword wildfire|0.174s|0.317s|11.335s|
 |Query by keyword hurricane|0.156s|0.152s|11.459s|
+
+
+# Evaluation
+
+The date range of 20 million tweets data span between 11/18/2015 to 12/04/2015, totally 384 hours. 
+
+1. AsterixDB performs better when using a cheaper query. Query by keyword hurricane returns less than 1000 rows within the whole date range. AsterixDB only takes around 0.1 seconds to perform the queries while Omnisci needs 0.4 seconds for running. (Both databases are tested on P2.XLARGE instance)
+
+![](images/hurricane.png)
+
+2. Omnisci performs better when using a more expensive query. Query by keyword love returns 110,000 rows within the whole date range. Omnisci's performance is quite stable within the date range. AsterixDB shows an increasing trend as time increase. (Both databases are tested on P2.XLARGE instance)
+
+![](images/love.png)
+
+3. Since AsterixDB uses inverted index for keyword search, it's more effective when searching for multiple keywords. Omnisci focus on fast scan performance but the running time increases when more keyword needs to be scanned.
+
+Starting from two keywords, AsterixDB starts reducing its running time. It reduces half amount of time as searching by a single keyword love. Omnisci still runs faster than AsterixDB but does not show a trend of optimizing.
+
+![](images/loveyou.png)
+
+Starting from three keywords, AsterixDB only takes around 0.2 seconds to perform the queries. It performs much quicker than Omnisci. 
+
+![](images/loveyoutoo.png)
+
+Searching for 4 keywords shows a similiar trend as 3 keywords. AsterixDB still takes around 0.2 seconds to perform the queries, much faster than Omnisci. 
+
+![](images/fourkeywordslove.png)
+
+4. Since AsterixDB only uses CPU, it does not utilize the GPU provided from P2.XLARGE instance. We can use other instances that does not provide GPU but with other similiar CPU settings for running AsterixDB. I choose another two instances R4.XLARGE and R4.2XLARGE for testing. They are both cheaper than P2.XLARGE, the GPU instance but provides more ECUs and CPUs. 
+
+|Instances|ECUs|vCPUs|GHz|processor|memory|price|
+| --- | --- | --- | --- | --- | --- | --- |
+|P2.XLARGE|11.75|4|2.7|Intel Broadwell E5-2686v4|61|0.900$/hour|
+|R4.2XLARGE|26.8|8|2.3|Intel Broadwell E5-2686v4|61|0.532 $/hour|
+|R4.XLARGE|13.4|4|2.3|Intel Broadwell E5-2686v4|30.5|0.266 $/hour|
+
+R4.2XLARGE will peform better than the GPU instance when executing a cheaper query while R4.XLARGE performs the worst among the three instances.
+
+![](images/multimachineshurricane.png)
+
+R4.2XLAGR has a really similiar performance with the GPU instance when executing an expensive query. From this experiment, we can see that the cost for running AsterixDB is lower than Omnisci since it doesn't need GPU. We can choose a cheaper instance and has a similiar performance as the GPU instance. 
+
+![](images/multimachineslove.png)
