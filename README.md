@@ -143,3 +143,22 @@ Example for an expensive query:
 
 ![](images/indexlove.png)
 
+# Summary 
+
+AsterixDB
+- Pro
+  - Fast in searching for multiple keywords
+  - Can use cheaper instance
+  - Can set up a cluster for free
+- Con
+  - Slow in searching for a single keyword
+  - Running time is not that stable. It can range from 0.2 seconds - 20 seconds depending on queries
+
+Omnisci
+- Pro
+  - The running time is stable, the running time ranges between 0.2 seconds - 1.5 seconds
+  - Fast for scanning
+- Con
+  - Have to use GPU instance which is quite expensive
+  - Does not allow distributed cluster for Community Version
+
