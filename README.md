@@ -97,7 +97,10 @@ Searching for 4 keywords shows a similiar trend as 3 keywords. AsterixDB still t
 
 ![](images/fourkeywordslove.png)
 
-4. Since AsterixDB only uses CPU, it does not utilize the GPU provided from P2.XLARGE instance. We can use other instances that does not provide GPU but with other similiar CPU settings for running AsterixDB. I choose another two instances R4.XLARGE and R4.2XLARGE for testing. They are both cheaper than P2.XLARGE, the GPU instance but provides more ECUs and CPUs. 
+
+# Optimizing AsterixDB
+
+1. Since AsterixDB only uses CPU, it does not utilize the GPU provided from P2.XLARGE instance. We can use other instances that does not provide GPU but with other similiar CPU settings for running AsterixDB. I choose another two instances R4.XLARGE and R4.2XLARGE for testing. They are both cheaper than P2.XLARGE, the GPU instance but provides more ECUs and CPUs. 
 
 |Instances|ECUs|vCPUs|GHz|processor|memory|price|
 | --- | --- | --- | --- | --- | --- | --- |
@@ -112,3 +115,31 @@ R4.2XLARGE will peform better than the GPU instance when executing a cheaper que
 R4.2XLAGR has a really similiar performance with the GPU instance when executing an expensive query. From this experiment, we can see that the cost for running AsterixDB is lower than Omnisci since it doesn't need GPU. We can choose a cheaper instance and has a similiar performance as the GPU instance. 
 
 ![](images/multimachineslove.png)
+
+2. Since setting up a cluster is only available for Omnisci Enterprise version, we can set up a cluster of instances to optimize AsterixDB performance. I set up a cluster of two R4.2XLARGE and four R4.XLARGE instances which cost similiar price as a GPU instance. 
+
+|Instance|Price|ECUs|vCPUs|memory|
+| --- | --- | --- | --- | --- |
+|P2.XLARGE|0.9 $/hour|11.75|4|61|
+|1 R4.2XLARGE|0.532 $/hour|26.8|8|61|
+|2 R4.2XLARGE|1.064 $/hour|53.6|16|122|
+|4 R4.XLARGE|1.064 $/hour|53.6|16|122|
+
+Since for cheaper queries like query by keyword hurricane, AsterixDB already performs better than Omnisci, It's unnecessary to increase cost to set up a cluster for testing cheaper queries. For expensive queries, more nodes help with the performance by providing greater processing power. Both two nodes and four nodes perform better than the single node. 
+
+![](images/cluster.png)
+
+3. Using two inverted index, keyword index and create_at index
+
+A “keyword index” is constructed on a set of strings or sets (e.g., OrderedList, UnorderedList). We generate tokens (e.g., words) and for each token, construct an inverted list that includes the ids of the objects with this token. That generally helps with improving the performance. 
+
+Two indexes, keyword index and create_at index, may not be effective in this case. The database will look up full text index text_idx first. In that results, it needs to get both full-text index results and time range index results, then intersect the two results. Finally, look up for primary ID of the results. With two indexes, it needs to search for the database twice and get the intersection. For some cases, the cost maybe over the possible benefits it can get. Also, for searching a longer period of time, one index already needs to scan all the results one by one. Two indexes double the running time because it needs to scan the database twice. 
+
+Example for a cheaper query:
+
+![](images/indexhurricane.png)
+
+Example for an expensive query:
+
+![](images/indexlove.png)
+
